@@ -54,11 +54,7 @@ class CTP
 	void EvaluateL0Condition();
 	bool EvaluateLMVetoes(INT t,INT icls);
 	bool EvaluateL0Vetoes(INT t,INT icls);
-	void ReceiveLMInps(INT i);
-	void ReceiveL0Inps(INT i);
-	void ReceiveL1Inps(INT i);
 	void CheckLM(INT i);
-	void CheckLM2(INT i);
 	void CheckL0(INT i);
 	void CheckL1(INT i);
 	void SendL0Triggers(INT t,INT* cls);

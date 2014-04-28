@@ -23,7 +23,7 @@ void Universe::doit(INT i,INT eventt)
  switch (eventt){
  //  Que Event generation
  case   1: event.ProduceTriggers(i);  break;
- case 100: ctp.ReceiveLMInps(i); break; 
+ case 100: ctp.CheckLM(i); break; 
  //case 101: ctp.ReceiveL0Inps(i); break;
  //case 102: ctp.ReceiveL1Inps(i);  break;
  case 150: ctp.CheckL0(i); break;

@@ -170,7 +170,7 @@ bool CTP::EvaluateL0Vetoes(INT t,INT icls)
  return notveto;
 } 
 //---------------------------------------------------------------------------
-void CTP::ReceiveLMInps(INT i)
+void CTP::CheckLM(INT i)
 {
  // LM Classes init
  INT *cls = new INT[NCLAS];
