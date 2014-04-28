@@ -1,0 +1,44 @@
+1.) 
+- L0 off
+- clsy busy off
+- rate=40nhz=1
+- ctpdeadtime=0 ok
+ctpdeadtime =1
+LMafter=LMbefore
+ctpdeadtime =2
+LMafter=LMBefore/2
+ctpdeadtime=3
+LML0TIME=10
+LMafter=0.3077*LMbefore (18462/60000)
+LML0TIME=13
+18750./60000
+LML0TIME=11
+LMafter=0.286*LMbefore (17144/60000) 6000./4=15000
+===================================================================
+    f=1           f=0.5                    f=0.1
+ctpdeadtime=4
+12000  (12000)  9042 (8571)  9073(rnlx)    3811(4000)
+ctpdeadtime=5
+11250  (10000)
+ctpdeadtime=6
+7060   (8571)
+ctpdeadtime=7
+6667    (7500)
+ctpdeadtime=8
+6316   (6667) 5178 (5454)
+ctpdeadtime=9
+6000   (6000) 4687 (5000)
+ctpdeadtime=10
+5715 (5454)  4179 (4615)
+NOTES:
+- be sure CTP is long enough for deadtime propagation
+- start to play with busys
+- another busy to introduce
+- study cluster interdependence
+
+run1= no busyes at LM
+step1 = clstbusy and lmbbusy for TRD cla at LM level
+step2 = clstbusy for nonTRD at LM level
+
+Kill as late as possible
+it helps more inspection !!

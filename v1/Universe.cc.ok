@@ -1,0 +1,151 @@
+#include "Universe.h"
+Universe::Universe()
+{
+}
+//-----------------------------------------------
+void Universe::Setup()
+{
+ int numofDET=4;
+ INT delayL0=32;
+ INT delayL1=240;
+ INT delayL2=3520;
+ INT trigDT=80;
+
+ detinfo.Setup(numofDET);
+
+ detl01.setIDdet(0);
+ detl01.setDelayL0(delayL0);
+ detl01.setDelayL1(delayL1);
+ detl01.setDeadTime(220);
+
+ detl02.setIDdet(1);
+ detl02.setDelayL0(delayL0);
+ detl02.setDelayL1(delayL1);
+ detl02.setDeadTime(220);
+
+ detl1.setIDdet(2);
+ detl1.setDeadTime(220);
+ detl1.setDelayL0(delayL0);
+ detl1.setDelayL1(delayL1);
+
+ detTPC.setIDdet(3);
+ detTPC.setDeadTime(4000);
+// detTPC.setDeadTime(20000);
+ detTPC.setDelayL0(delayL0);
+ detTPC.setDelayL1(delayL1);
+
+
+ trig.setDelayL0(delayL0);
+ trig.setDelayL1(delayL1);
+ trig.setDelayL2(delayL2);
+ trig.setTrigDT(trigDT);
+
+ detinfo.Setup(numofDET);
+}
+//------------------------------------------
+Universe::~Universe()
+{
+}
+//---------------------------------------------
+void Universe::doit(INT i,char c,char message)
+{
+ switch (c){
+//  Que Event generation
+ case 'e': event.SendEvent(i);  break;
+ case 'd': DetReceiveData(i); break;
+ case 't': trig.ReceiveL0(i,message);break;
+ case 'u': trig.ReceiveL1(i,message);break;
+
+ case 'x': detl01.SendDataL0(i,message);break;
+ case 'y': detl02.SendDataL0(i,message);break;
+ case 'z': detl1.SendDataL0(i,message);break;
+ case 'v': detTPC.SendDataL0(i,message);break;
+
+ case 'r': ResetDetectors(i,message);break;
+ case 'l': SendL1(i,message);break;
+ 
+ case 'o': trig.ResetBusy();break;
+ case 'm': trig.DecideL1(i,message);break;
+ case 'n': trig.DecideL2(i,message);break;
+ case 'g': gdc.ReceiveData(i, message);break;
+ case 's': gdc.SendData(i);   break;
+
+ case 'f': trig.stateDAQfull=1;break;
+ case 'F': trig.stateDAQfull=0;break;
+
+ case 'w': trig.stateRARE=1;break;
+ case 'W': trig.stateRARE=0;break;      
+
+// Past future production
+ case 'p': trig.PastFuture(message);break;
+ default: {cout << "exiting from doit " << c << endl; 
+           exit(1);
+          }
+ }            
+}
+//-------------------------------------------------
+void Universe::ResetDetectors(INT i, char message)
+{
+// cout << "Universe::ResetDetectors im=" << i << message << endl;
+ switch (message){
+    case '1': detl01.ResetBusy(i,'1');break;
+    case '2': detl02.ResetBusy(i,'2');break;
+    case '3': detl1.ResetBusy(i,'3'); break;
+    case '4': detTPC.ResetBusy(i,'4');break;
+    default : cout << "Universe::ResetDetectors:unknown detector" << endl;
+              exit(2);
+ }
+}
+//----------------------------------------------
+void Universe::SendL1(INT i, char message)
+{
+ switch (message){
+    case '1': detl01.L1received=1;break;
+    case '2': detl02.L1received=1;break;
+    case '3': detl1.L1received=1; break;
+    case '4': detTPC.L1received=1;break;
+    default : cout << "Universe::ResetDetectors:unknown detector" << endl;
+              exit(2);
+ }
+// cout << " Universe::SendL1: send " << message << endl;
+}
+
+//-------------------------------------------------
+void Universe::DetReceiveData(INT i)
+{
+ detl01.ReceiveData(i,'1');detl02.ReceiveData(i,'2');
+ detl1.ReceiveData(i,'3');
+ detTPC.ReceiveData(i,'4');
+}
+//----------------------------------------------
+void Universe::Exist()
+{
+ char c,m;
+ INT Time;
+ long int time;
+ int delta;
+ delta=100000;
+// Setting times
+ Setup();
+ trig.Setup();
+//-------------------------------------------------
+ Time=0;
+ gdc.SendData(0);
+ for (int cycle=0; cycle<1; cycle++){
+ for (time=0; time < 500000 ; time++){  //12s=500000000
+//     cout << "------------------------------------------------------" << endl;
+     if ( (time/delta)*delta == time) gdc.Monitor(time,delta);
+
+     cq.PutEntry(Time,'e','0');
+
+     cq.DoEntry(Time,&c,&m);
+     while (c != '0'){
+           doit(Time,c,m);
+           cq.DoEntry(Time,&c,&m);
+     }
+ trig.DecideL0(Time);
+ Time++;
+ cq.GlobTime++;
+ }
+ }
+} 

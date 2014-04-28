@@ -1,0 +1,8 @@
+
+Class: 0
+100098 B LM A 8874
+8874 B L0 A 8874
+Class: 1
+9899902 B LM A 13943
+8 B L0 A 8
+CPU time= 9 sec
