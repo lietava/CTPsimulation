@@ -11,33 +11,36 @@ Event::~Event()
 void Event::ProduceTriggers(INT i)
 // This should be done by detectors
 {
-  // LM trigger
+  // 
   INT* lminps=new INT[2];
+  INT* l0inps=new INT[2];
+  INT* l1inps=new INT[2];
+  for(int j=0;j<2;j++){
+   lminps[j]=0;
+   l0inps[j]=0;
+   l1inps[j]=0;
+  }
   double x=rnlx();
   if(x<0.0025){
-   lminps[0]=1;
-   lminps[1]=1;
+   // MB
+   lminps[0]=i;
+   lminps[1]=i;
+   //printf("LMLM %i \n",i);
+   // L1
+   x=rnlx();
+   if(x<0.05){
+     l1inps[0]=i;
+     //printf("L1L1 %i \n",i);
+   }
   }else{
-   lminps[0]=0;
-   lminps[1]=0;
+   // upc
+   x=rnlx();
+   if(x<0.0001){ 
+     l0inps[0]=i;
+   }
   }
-  LMinps.push_back(lminps);
   CalQueue::PutEntry(i+LMLAT,100);
-  // L0 trigger
-  //float x=rand()/RAND_MAX;
-  x=rnlx();
-  INT* l0inps=new INT[2];
-  if(x<0.0001){
-   l0inps[0]=1;
-   l0inps[1]=1;
-  }else{
-   l0inps[0]=0;
-   l0inps[1]=0;
-  } 
+  LMinps.push_back(lminps);
   L0inps.push_back(l0inps);
-  //CalQueue::PutEntry(i+L0LAT,101);
-  // L1 trigger
-  //x=rand()/RAND_MAX;
-  //if(x>1.) return;
-  //CalQueue::PutEntry(i+230,102);
+  L1inps.push_back(l1inps);
 }

@@ -34,8 +34,13 @@ class CTP
 	int countALM[NCLAS];
 	int countBL0[NCLAS];
 	int countAL0[NCLAS];
+	int countBL1[NCLAS];
+	int countAL1[NCLAS];
 	list<INT*> LMclasses;
 	list<INT*> L0classes;
+	list<INT*> L1classes;
+	list<INT*> L01inpsCTP;
+	list<INT*> L1inpsCTP;
  public:
  	CTP();
 	~CTP();
@@ -50,10 +55,12 @@ class CTP
 	bool GetCTPLMBusy(INT t);
 	bool GetCLSTBusy(INT t,INT icl);
 	bool GetDetBusy(INT t,INT idet);
-	void EvaluateLMCondition();
-	void EvaluateL0Condition();
+	void EvaluateLMCondition(INT t);
+	void EvaluateL0Condition(INT t);
+	void EvaluateL1Condition(INT t);
 	bool EvaluateLMVetoes(INT t,INT icls);
 	bool EvaluateL0Vetoes(INT t,INT icls);
+	bool EvaluateL1Vetoes(INT t,INT icls);
 	void CheckLM(INT i);
 	void CheckL0(INT i);
 	void CheckL1(INT i);
