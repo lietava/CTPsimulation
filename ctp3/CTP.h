@@ -19,9 +19,9 @@ class CTP
         INT CTPBusy;
 	INT CTPLMBusy;
 	INT CTPL0Busy;
-	//INT CLSTBusy[NCLST];
-	INT DetBusy[NDET];
 	INT BUSY;
+	bool trdclassor;
+	INT DetBusy[NDET];
 	INT Desc[NDESC];
 	INT Cls2Clust[NCLAS];
 	bool ClsVeto[NCLAS];

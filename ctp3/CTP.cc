@@ -132,6 +132,7 @@ bool CTP::EvaluateLMVetoes(INT t,INT icls)
    if(!ctplmb && !clstbusy && !ctpl0busy && !ctpbusy){
    //if(!ctpbusy && !ctplmb && !clstbusy){
    //if(!ctpl0busy && !ctplmb && !clstbusy){
+     trdclassor=1;
      notveto=1;
    }
  }else{
@@ -179,6 +180,7 @@ void CTP::CheckLM(INT i)
  EvaluateLMCondition();
  // LM decision
  bool classor=0;
+ trdclassor=0;
  for(int icls=0;icls<NCLAS;icls++){
     int idesc=Cls2Desc[icls];
     if(Desc[idesc]){
@@ -190,16 +192,10 @@ void CTP::CheckLM(INT i)
       }
     }
  }
- if(classor){
-     SetCTPLMBusy(i);
+ if(trdclassor){
+   SetCTPLMBusy(i);
  }
- if(dbg){
-    cout << i << " Desc    M: " << Desc[0] <<  " " << Desc[1] << endl;
-    cout << i << " Classes M: " << cls[0] << " " << cls[1] << endl;
- }   
- INT sum=0;
- for(int j=0;j<NCLAS;j++)sum+=cls[j];
- if(sum){
+ if(classor){
     LMclasses.push_back(cls);
     //SetCTPBusy(i);
     //SetCTPL0Busy(i);
@@ -209,6 +205,10 @@ void CTP::CheckLM(INT i)
   L0inps.pop_front();
   delete [] cls;
  } 
+ if(dbg){
+    cout << i << " Desc    M: " << Desc[0] <<  " " << Desc[1] << endl;
+    cout << i << " Classes M: " << cls[0] << " " << cls[1] << endl;
+ }   
  //if(dbg)cout << "lXinps: " << LMinps.size() << " " << L0inps.size() << endl;
 }
 //---------------------------------------------------------------------------------------
@@ -227,24 +227,20 @@ void CTP::CheckL0(INT i)
  // L0 inputs
  EvaluateL0Condition();
  // L0 decision
+ bool classor=0;
  for(int icls=0;icls<NCLAS;icls++){
     if(!clsm[icls]) continue;
     int idesc=Cls2Desc[icls];
     if(Desc[idesc]){
       countBL0[icls]++;
       if(EvaluateL0Vetoes(i,icls)){
+        classor=1;
         cls0[icls]=1;
         countAL0[icls]++;
       }
     }
  }
- if(dbg){
-    cout << i << " Classes M: " << clsm[0] << " " << clsm[1] << endl;
-    cout << i << " Classes 0: " << cls0[0] << " " << cls0[1] << endl;
- }
- INT sum=0;
- for(int j=0;j<NCLAS;j++)sum+=cls0[j];
- if(sum){
+ if(classor){
     L0classes.push_back(cls0);
     SetCTPBusy(i);
     SetCTPL0Busy(i);
@@ -254,6 +250,10 @@ void CTP::CheckL0(INT i)
   //L1inps.pop_front();
   delete [] cls0;
  } 
+ if(dbg){
+    cout << i << " Classes M: " << clsm[0] << " " << clsm[1] << endl;
+    cout << i << " Classes 0: " << cls0[0] << " " << cls0[1] << endl;
+ }
 }
 //----------------------------------------------------
 void CTP::SendL0Triggers(INT i,INT* cls0)
