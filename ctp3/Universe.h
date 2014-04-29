@@ -25,7 +25,6 @@ class Universe
         void Setup();
         void Exist();
         void Collide(INT Time);
-	void DetsGotL0Trigger(INT i,INT idet);
         void Monitor(long int time, int delta);
 };
 #endif  

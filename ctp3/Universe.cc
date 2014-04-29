@@ -29,24 +29,27 @@ void Universe::doit(INT i,INT eventt)
  case 150: ctp.CheckL0(i); break;
  case 151: ctp.CheckL1(i); break;
  //
- case 200: DetsGotL0Trigger(i,0); break;
- case 201: DetsGotL0Trigger(i,1); break;
- case 202: DetsGotL0Trigger(i,2); break;
+ case 200: dets[0].SetBusy(i); break;
+ case 201: dets[1].SetBusy(i); break;
+ case 202: dets[2].SetBusy(i); break;
  // ctp received busy from det0 ~ clust1 
  case 300: ctp.SetDetBusy(i,0); break;
  case 301: ctp.SetDetBusy(i,1); break;
  case 302: ctp.SetDetBusy(i,2); break;
+ // L1 triggers
+ // L1 trigger timeouts
+ case 500: dets[0].ResetBusy(i);break;
+ case 501: dets[1].ResetBusy(i);break;
+ case 502: dets[2].ResetBusy(i);break;
+ // CTP receives busy
+ case 600: ctp.ResetDetBusy(i,0); break;
+ case 601: ctp.ResetDetBusy(i,1); break;
+ case 602: ctp.ResetDetBusy(i,2); break;
 
  default: {cout << "exiting from doit " << eventt << endl; 
            exit(1);
           }
  }            
-}
-//-----------------------------------------------------
-void Universe::DetsGotL0Trigger(INT i,INT idet)
-{
- // 
- dets[idet].SetBusy(i);
 }
 //----------------------------------------------------
 void Universe::Collide(INT Time)

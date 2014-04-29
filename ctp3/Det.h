@@ -9,7 +9,7 @@ class Det
          int IDdet;
          INT deadtime;
 	 INT lasttrigger;
-
+	 enum {T2DET=10,L0L1TIME=230};
  public:
 	string name;
         int stateBUSY;
@@ -17,7 +17,7 @@ class Det
         ~Det();
 	void SetID(int i){IDdet=i;};
         void SetBusy(INT i);
-        void ResetBusy(INT i,char message);
+        void ResetBusy(INT i);
 	bool CheckDistance(INT t);
 
 };

@@ -19,7 +19,7 @@ CTPL0Busy(CalQueue::SizeofQue+10)
    countAL1[i]=0;
    ClsDownScale[i]=2.;
  }
- //ClsDownScale[0]=0.5;
+ //ClsDownScale[0]=0.001;
  ClustTRDflag[0]=1;  // Automatic recognition of TRD classes
  ClustTRDflag[1]=0;  // for the moment it is fixed
  ClustTRDflag[2]=1;
@@ -339,17 +339,45 @@ void CTP::CheckL1(INT i)
  }
  if(classor){
    //L1classes.push_back(cls1);
-   //SendL1Triggers(i,cls0);
  }else{
   //L2inps.pop_front();
-  delete [] cls1;
  } 
+ SendL1Triggers(i,cls1);
  delete [] cls0;
+ delete [] cls1;
  if(dbg){
     cout << i << " Classes M: " << cls0[0] << " " << cls0[1] << endl;
     cout << i << " Classes 0: " << cls1[0] << " " << cls1[1] << endl;
  }
 
+}
+//----------------------------------------------------
+void CTP::SendL1Triggers(INT i,INT* cls1)
+{
+ bool clusttrigs[NDET];
+ for(int j=0;j<NDET;j++)clusttrigs[j]=0;
+ // Find dets for trigs
+ for(int  icls=0;icls<NCLAS;icls++){
+  if(cls1[icls]){
+    INT iclust=Cls2Clust[icls];
+    for(int j=0;j<NDET;j++)if(Clust2Det[iclust][j])clusttrigs[j] = 1;
+  } 
+ }
+ // Send triggers
+ for(int j=0;j<NDET;j++){
+    if(clusttrigs[j]){
+       continue; 
+       //CalQueue::PutEntry(i+T2DET,400+j);
+       // Dont need to send L1 trigger
+       // Det already busy from L0
+    }else{
+       // This is trick to avod time alignement of inputs and L1 in ClQueue
+       // Instead 'timout signal' is send
+       CalQueue::PutEntry(i+T2DET,500+j);
+    }   
+ }   
+ // Register L2 trigger at L2 time
+ //CalQueue::PutEntry(i+L0L1TIME,151);
 }
 void CTP::printCounts()
 {

@@ -47,9 +47,9 @@ class CTP
 	void SetCTPBusy(INT t){CTPBusy=t;};
 	void SetCTPLMBusy(INT t){CTPLMBusy=t;};
 	void SetCTPL0Busy(INT t){CTPL0Busy=t;};
-	//void SetClstBusy(INT t,INT i){CLSTBusy[i]=t;};
 	void SetDetBusy(INT t,INT i){DetBusy[i]=t;};
-	//void SetClstBusy(INT t,INT i){};
+	void ResetDetBusy(INT t,INT i){DetBusy[i]=CalQueue::SizeofQue+10;};
+	// Get
 	bool GetCTPBusy(INT t);
 	bool GetCTPL0Busy(INT t);
 	bool GetCTPLMBusy(INT t);
@@ -65,6 +65,7 @@ class CTP
 	void CheckL0(INT i);
 	void CheckL1(INT i);
 	void SendL0Triggers(INT t,INT* cls);
+	void SendL1Triggers(INT t,INT* cls);
 	void printCounts();
 };
 #endif  
