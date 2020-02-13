@@ -16,12 +16,15 @@ class CTP
 	INT DETBUSY[NDET];
 	bool GetBusy(INT t,INT busytype);
 	bool dbg;
+	// Busy values
         INT CTPBusy;
 	INT CTPLMBusy;
 	INT CTPL0Busy;
-	INT BUSY;
-	bool trdclassor;
 	INT DetBusy[NDET];
+	// working variable for calculating busy 
+	INT BUSY;
+	//
+	bool trdclassor;
 	INT Desc[NDESC];
 	INT Cls2Clust[NCLAS];
 	bool ClsVeto[NCLAS];

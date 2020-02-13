@@ -78,7 +78,7 @@ void Universe::Exist()
  Time=0;
  //gdc.SendData(0);
  clock_t start=clock();
- int NCYC=11;
+ int NCYC=5;
  for (int cycle=0; cycle<NCYC; cycle++){
  for (time=0; time < 1000000 ; time++){  //12s=500000000
 //     cout << "------------------------------------------------------" << endl;

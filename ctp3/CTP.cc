@@ -23,9 +23,11 @@ CTPL0Busy(CalQueue::SizeofQue+10)
  ClustTRDflag[0]=1;  // Automatic recognition of TRD classes
  ClustTRDflag[1]=0;  // for the moment it is fixed
  ClustTRDflag[2]=1;
+ // Assignment of classes to clusters
  Cls2Clust[0]=0;
  Cls2Clust[1]=1;
  Cls2Clust[2]=2;
+ // Assigment of detectors to clusters
  Clust2Det[0][0]=1;    // TRD
  Clust2Det[0][1]=1;
  Clust2Det[0][2]=1;
@@ -35,9 +37,11 @@ CTPL0Busy(CalQueue::SizeofQue+10)
  Clust2Det[2][0]=1;
  Clust2Det[2][1]=1;
  Clust2Det[2][2]=1;
+ // Assignment ofdescriptor to class
  Cls2Desc[0]=0;
  Cls2Desc[1]=1;
  Cls2Desc[2]=2;
+ // Class mask like veto
  ClsVeto[0]=1;
  ClsVeto[1]=1;
  ClsVeto[2]=1;
@@ -49,7 +53,7 @@ CTP::~CTP()
 bool CTP::GetBusy(INT t,INT busytype)
 { 
  bool busy=0;
- if(busytype != (CalQueue::SizeofQue+10)){
+ if(busytype != (CalQueue::SizeofQue+10)){  // Detector is not busy
    int busyint = busytype + BUSY - t;
    if(t < busytype) busyint = (busyint - CalQueue::SizeofQue);
    busy = (busyint>0);
@@ -180,8 +184,8 @@ bool CTP::EvaluateL0Vetoes(INT t,INT icls)
  bool clstbusy= GetCLSTBusy(t,iclust);
  bool ctpl0busy= GetCTPL0Busy(t);
  if(ClustTRDflag[iclust]){
-   //if(1){  
-   if(!ctpbusy){
+   if(1){  
+   //if(!ctpbusy){
    //if(!ctpbusy && !ctpl0busy && !clstbusy){
      notveto=1;
    }
@@ -223,6 +227,7 @@ void CTP::CheckLM(INT i)
  }
  if(trdclassor){
    SetCTPLMBusy(i);
+   SetCTPBusy(i);
  }
  INT* l0inps=L0inps.front();
  L0inps.pop_front();
@@ -264,6 +269,7 @@ void CTP::CheckL0(INT i)
  EvaluateL0Condition(i);
  // L0 decision
  bool classor=0;
+ trdclassor=0;
  for(int icls=0;icls<NCLAS;icls++){
     if(!clsm[icls]) continue;
     int idesc=Cls2Desc[icls];
@@ -280,7 +286,7 @@ void CTP::CheckL0(INT i)
  L01inpsCTP.pop_front();
  if(classor){
     L0classes.push_back(cls0);
-    SetCTPBusy(i);
+    if(!trdclassor) SetCTPBusy(i);
     SetCTPL0Busy(i);
     // Send trigger both for TRD and nonTRD cluster to detectors except TRD
     SendL0Triggers(i,cls0);
