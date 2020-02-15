@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <list>
 #include <fstream>
+#include "calqueue.h"
 
 class Event
 {

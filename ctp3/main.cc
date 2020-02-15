@@ -1,4 +1,3 @@
-#include "ranlux.c"
 #include "calqueue.cc"
 //#include "DetInfo.cc"
 #include "Event.cc"
@@ -13,7 +12,6 @@
 
 int main()
 {
- setseeds(3.,7.);
  Universe test;
  test.Exist();
 }

@@ -1,4 +1,5 @@
 #include "Universe.h"
+#include "calqueue.h"
 Universe::Universe()
 {
  dets = new Det[3];
@@ -79,8 +80,9 @@ void Universe::Exist()
  //gdc.SendData(0);
  clock_t start=clock();
  int NCYC=5;
+ int NN=1000000;
  for (int cycle=0; cycle<NCYC; cycle++){
- for (time=0; time < 1000000 ; time++){  //12s=500000000
+ for (time=0; time < NN  ; time++){  //12s=500000000
 //     cout << "------------------------------------------------------" << endl;
      if ( (time/delta)*delta == time) Monitor(time,delta);
 
@@ -95,7 +97,7 @@ void Universe::Exist()
  cq.GlobTime++;
  }
  }
- ctp.printCounts();
+ ctp.printCounts(NCYC,NN);
  clock_t stop=clock();
  cout << "CPU time= " << (stop-start)/CLOCKS_PER_SEC <<" sec"<< endl;
 } 

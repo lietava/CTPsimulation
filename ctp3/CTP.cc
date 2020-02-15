@@ -1,4 +1,5 @@
 #include "CTP.h"
+#include "Event.h"
 // Lm,L0,L1 at CTP: 21,32,230
 CTP::CTP()
 :dbg(0),CTPBusy(CalQueue::SizeofQue+10),
@@ -7,9 +8,9 @@ CTPL0Busy(CalQueue::SizeofQue+10)
 {
  //for(int i=0;i<NCLST;i++)CLSTBusy[i]=CalQueue::SizeofQue+10;
  for(int i=0;i<NDET;i++)DetBusy[i]=CalQueue::SizeofQue+10;
- DETBUSY[0]=10000;    // TRD
- DETBUSY[1]=20000;    // TPC
- DETBUSY[2]=10000;    //
+ DETBUSY[0]=1000;    // TRD
+ DETBUSY[1]=2000;    // TPC
+ DETBUSY[2]=1000;    //
  for(int i=0;i<NCLAS;i++){
    countBLM[i]=0;
    countALM[i]=0;
@@ -19,24 +20,25 @@ CTPL0Busy(CalQueue::SizeofQue+10)
    countAL1[i]=0;
    ClsDownScale[i]=2.;
  }
+ for(int i=0;i<NCLST;i++)countClust[i]=0;
  //ClsDownScale[0]=0.001;
  ClustTRDflag[0]=1;  // Automatic recognition of TRD classes
- ClustTRDflag[1]=0;  // for the moment it is fixed
+ ClustTRDflag[1]=1;  // for the moment it is fixed
  ClustTRDflag[2]=1;
  // Assignment of classes to clusters
  Cls2Clust[0]=0;
- Cls2Clust[1]=1;
- Cls2Clust[2]=2;
+ Cls2Clust[1]=0;
+ Cls2Clust[2]=1;
  // Assigment of detectors to clusters
- Clust2Det[0][0]=1;    // TRD
- Clust2Det[0][1]=1;
- Clust2Det[0][2]=1;
- Clust2Det[1][0]=0;     //no TRD
- Clust2Det[1][1]=1;
- Clust2Det[1][2]=1;
+ Clust2Det[0][0]=1;    // CPV
+ Clust2Det[0][1]=1;     // PHS
+ Clust2Det[0][2]=0;
+ Clust2Det[1][0]=1;     //no CPV
+ Clust2Det[1][1]=0;
+ Clust2Det[1][2]=0;
  Clust2Det[2][0]=1;
- Clust2Det[2][1]=1;
- Clust2Det[2][2]=1;
+ Clust2Det[2][1]=0;
+ Clust2Det[2][2]=0;
  // Assignment ofdescriptor to class
  Cls2Desc[0]=0;
  Cls2Desc[1]=1;
@@ -101,9 +103,9 @@ void CTP::EvaluateLMCondition(INT t)
  // Inputs and descriptors
  INT* lminps = LMinps.front();
  LMinps.pop_front();
- Desc[0] = lminps[0]*lminps[1];     //MB
- Desc[1] =!lminps[0] && !lminps[1]; //UPC
- Desc[2] = Desc[0];                 //MB
+ Desc[0] = lminps[0];     //MB
+ Desc[1] = lminps[0]; //!lminps[0] && !lminps[1]; //UPC
+ Desc[2] = lminps[0];                 //MB
  //for(int i=0;i<2;i++)printf("LM %i ",lminps[i]);printf("%i \n",t);
  //if(Desc[0])printf("LM %i\n",t-lminps[0]);
  delete [] lminps;
@@ -119,9 +121,9 @@ void CTP::EvaluateL0Condition(INT t)
  // Inputs and descriptors
  INT* l0inps = L01inpsCTP.front();
  L01inpsCTP.pop_front();
- Desc[0] = 1;         
- Desc[1] = l0inps[0]; 
- Desc[2] = 1;
+ Desc[0] = l0inps[0];
+ Desc[1] = l0inps[1];
+ Desc[2] = l0inps[0];
  //for(int i=0;i<2;i++)printf("L0 %i ",l0inps[i]);printf("%i \n",t);
  //if(Desc[1])printf("L0: %i\n",t-l0inps[0]);
  delete [] l0inps;
@@ -138,7 +140,7 @@ void CTP::EvaluateL1Condition(INT t)
  L1inpsCTP.pop_front();
  Desc[0] = 1;        
  Desc[1] = 1;         //UPC
- Desc[2] = l1inps[0];
+ Desc[2] = 1;
  //for(int i=0;i<2;i++)printf("L1 %i ",l1inps[i]);printf("%i \n",t);
  //if(Desc[2])printf("L1: %i\n",t-l1inps[0]);
  delete [] l1inps;
@@ -307,12 +309,16 @@ void CTP::SendL0Triggers(INT i,INT* cls0)
  bool clusttrigs[NDET];
  for(int j=0;j<NDET;j++)clusttrigs[j]=0;
  // Find dets for trigs
+ int clst_fired[NCLST];
+ for(int i=0;i<NCLST;i++)clst_fired[i]=0;
  for(int  icls=0;icls<NCLAS;icls++){
   if(cls0[icls]){
     INT iclust=Cls2Clust[icls];
+    clst_fired[iclust]++;
     for(int j=0;j<NDET;j++)if(Clust2Det[iclust][j])clusttrigs[j] |=1;
   } 
  }
+ for(int i=0;i<NCLST;i++)if(clst_fired[i]>0)countClust[i]++;
  // Send triggers
  for(int j=0;j<NDET;j++)if(clusttrigs[j])CalQueue::PutEntry(i+T2DET,200+j);
  // Register L0 trigger at L0 time
@@ -385,12 +391,18 @@ void CTP::SendL1Triggers(INT i,INT* cls1)
  // Register L2 trigger at L2 time
  //CalQueue::PutEntry(i+L0L1TIME,151);
 }
-void CTP::printCounts()
+void CTP::printCounts(int ncycle, int nn)
 {
+ double bc=(ncycle-1)*nn;
  for(int i=0;i<NCLAS;i++){
   printf("\n Class %3i: \n",i);
-  printf("LM B A %8i %8i \n",countBLM[i],countALM[i]);
-  printf("L0 B A %8i %8i \n",countBL0[i],countAL0[i]);
-  printf("L1 B A %8i %8i \n",countBL1[i],countAL1[i]);
+  printf("LM B A %8i %8i      %f %f kHz\n",countBLM[i],countALM[i],40000.*countBLM[i]/bc,40000.*countALM[i]/bc);
+  printf("L0 B A %8i %8i      %f %f kHz\n",countBL0[i],countAL0[i],40000.*countBL0[i]/bc,40000.*countAL0[i]/bc);
+  printf("L1 B A %8i %8i      %f %f kHz\n",countBL1[i],countAL1[i],40000.*countBL1[i]/bc,40000.*countAL1[i]/bc);
+ }
+ for(int i=0;i <NCLST;i++)
+ {
+     printf("CLUSTER %2i: ",i);
+     printf(" L0: %i \n",countClust[i]);
  }
 }

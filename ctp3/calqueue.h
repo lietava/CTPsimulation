@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <string>
 #include <list> 
+#include <random>
 
 using namespace std;
 
@@ -13,7 +14,11 @@ typedef unsigned int INT;
 struct Box{ 
           list<INT> eventtype;
 };
-
+//
+//std::random_device rd;
+static std::mt19937 gen(7);
+static std::uniform_real_distribution<> ranlux(0, 1);
+double rnlx(){return ranlux(gen);}
 class CalQueue
 {
  private:
@@ -32,5 +37,6 @@ class CalQueue
 INT CalQueue::SizeofQue=1024*1024;
 Box* CalQueue::que=new Box[SizeofQue];
 long int CalQueue::GlobTime=0;
+
 #endif  
 

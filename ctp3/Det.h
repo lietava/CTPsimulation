@@ -2,6 +2,7 @@
 #ifndef  Det_h
 #define  Det_h 1  
 #include <iostream>
+#include "calqueue.h"
 
 class Det
 {
@@ -15,7 +16,7 @@ class Det
         int stateBUSY;
         Det();
         ~Det();
-	void SetID(int i){IDdet=i;};
+    void SetID(int i){IDdet=i;}
         void SetBusy(INT i);
         void ResetBusy(INT i);
 	bool CheckDistance(INT t);
