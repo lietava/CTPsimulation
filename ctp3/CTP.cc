@@ -8,8 +8,8 @@ CTPL0Busy(CalQueue::SizeofQue+10)
 {
  //for(int i=0;i<NCLST;i++)CLSTBusy[i]=CalQueue::SizeofQue+10;
  for(int i=0;i<NDET;i++)DetBusy[i]=CalQueue::SizeofQue+10;
- DETBUSY[0]=1000;    // TRD
- DETBUSY[1]=2000;    // TPC
+ DETBUSY[0]= 500;    // CPV
+ DETBUSY[1]=1000;    // PHS
  DETBUSY[2]=1000;    //
  for(int i=0;i<NCLAS;i++){
    countBLM[i]=0;
