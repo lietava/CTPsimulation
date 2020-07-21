@@ -1,0 +1,49 @@
+Nonoverlapping memory    
+const int SIZE=1024*1024*100;
+[rl@alictpserverlab TrigSim]$ ./a.out 
+Independent dets. Rate[MHz]:1 independent rates lt1:0.111111 lt2:0.0075188 lt1*lt2:0.000835422
+% TRD of LM rate 0.111465 292138
+% EMC of LM rate 0.0075184 19705
+% T&E of LM rate 0.000874508 2292
+One cluster Rate[MHz]:1 independent rates lt1:0.111111 lt2:0.0075188 lt1*lt2:0.000835422
+% TRD of LM rate 0 0
+% EMC of LM rate 0.0051558 13510
+% T&E of LM rate 0.0051558 13510
+Two clusters. Rate[MHz]:1 independent rates lt1:0.111111 lt2:0.0075188 lt1*lt2:0.000835422
+% TRD of LM rate 0.106653 279588
+% EMC of LM rate 0 0
+% TRD&EMCofLM rate 0.00103682 2718
+% TRD of LM rate formula 0.714286
+[rl@alictpserverlab TrigSim]$ gvim results.txt
+
+[rl@alictpserverlab TrigSim]$ ./a.out 
+Independent dets. Rate[MHz]:1 independent rates lt1:0.111111 lt2:0.0075188 lt1*lt2:0.000835422
+NLOOP:1048576000
+Time[secs]:64.47
+% TRD of LM rate 0.111445 2921027
+% EMC of LM rate 0.00750466 196700
+% T&E of LM rate 0.000848289 22234
+Two clusters. Rate[MHz]:1 independent rates lt1:0.111111 lt2:0.0075188 lt1*lt2:0.000835422
+NLOOP:1048576000
+Time[secs]:66.29
+% TRD of LM rate 0.106626 2796290
+% EMC of LM rate 0 0
+% TRD&EMCofLM rate 0.00103416 27121
+LM rejected:0 0
+
+
+[rl@alictpserverlab TrigSim]$ ./a.out 
+Independent dets. Rate[MHz]:1 independent rates lt1:0.111111 lt2:0.0075188 lt1*lt2:0.000835422
+NLOOP:1895825408
+Time[secs]:115.88
+% TRD of LM rate 0.111408 5280961
+% EMC of LM rate 0.00751001 355988
+% T&E of LM rate 0.000843998 40007
+Two clusters. Rate[MHz]:1 independent rates lt1:0.111111 lt2:0.0075188 lt1*lt2:0.000835422
+NLOOP:1895825408
+Time[secs]:118.82
+% TRD of LM rate 0.106659 5055375
+% EMC of LM rate 0 0
+% TRD&EMCofLM rate 0.00103358 48989
+LM rejected:0 0
+
