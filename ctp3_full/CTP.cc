@@ -64,7 +64,11 @@ bool CTP::GetBusy(INT t,INT busytype)
  if(1)cout << "busy bool:" << busy << " busytype:" << busytype <<" BUSY:"<<BUSY<<" t " << t << endl;
  return busy;
 }
-
+bool CTP::GetCTPBusy(INT t)
+{
+ BUSY=CTPDTIME;
+ return GetBusy(t,CTPBusy);
+};
 bool CTP::GetCTPL0Busy(INT t)
 {
  BUSY=L0BUSY;
@@ -165,12 +169,15 @@ bool CTP::EvaluateLMVetoes(INT t,INT icls)
 
  INT iclust=Cls2Clust[icls];
  bool notveto=0;
+ bool ctpbusy = GetCTPBusy(t);
  bool clstbusy= GetCLSTBusy(t,iclust);
  bool ctpl0busy= GetCTPL0Busy(t);
  if(ClustTRDflag[iclust]){
    bool ctplmb = GetCTPLMBusy(t);
    //if(!ctpl0busy && !clstbusy){  
-   if(!ctplmb && !clstbusy && !ctpl0busy){
+   if(!ctplmb && !clstbusy && !ctpl0busy && !ctpbusy){
+   //if(!ctpbusy && !ctplmb && !clstbusy){
+   //if(!ctpl0busy && !ctplmb && !clstbusy){
      trdclassor=1;
      notveto=1;
    }
@@ -178,11 +185,12 @@ bool CTP::EvaluateLMVetoes(INT t,INT icls)
    if(1){
    //if(!ctpl0busy && !clstbusy){
    //if(!clstbusy1){
+   //if(!ctpbusy && !clstbusy){ 
    //if(!ctpbusy && !clstbusy && !ctpl0busy){ 
      notveto=1;
    }  
  }
- if(dbg)printf("%i LM clstbusy %i ctpl0busy %i \n",t,clstbusy,ctpl0busy);
+ if(dbg)printf("%i LM ctpbusy %i clstbusy %i ctpl0busy %i \n",t,ctpbusy,clstbusy,ctpl0busy);
  return notveto;
 }
 //---------------------------------------------------------------------------
@@ -190,6 +198,7 @@ bool CTP::EvaluateL0Vetoes(INT t,INT icls)
 {
  INT iclust=Cls2Clust[icls];
  bool notveto=0;
+ bool ctpbusy = GetCTPBusy(t);
  bool clstbusy= GetCLSTBusy(t,iclust);
  bool ctpl0busy= GetCTPL0Busy(t);
  if(ClustTRDflag[iclust]){
@@ -200,11 +209,11 @@ bool CTP::EvaluateL0Vetoes(INT t,INT icls)
    }
  }else{
    //if(1){
-   if(!clstbusy && !ctpl0busy){;
+   if(!ctpbusy && !clstbusy && !ctpl0busy){;
     notveto=1;
    }
  }
- if(dbg)printf("%i  clstbusy %i ctpl0busy %i \n",t,clstbusy,ctpl0busy);
+ if(dbg)printf("%i L0 ctpbusy %i clstbusy %i ctpl0busy %i \n",t,ctpbusy,clstbusy,ctpl0busy);
  return notveto;
 } 
 //---------------------------------------------------------------------------
@@ -237,6 +246,7 @@ void CTP::CheckLM(INT i)
  }
  if(trdclassor){
    SetCTPLMBusy(i);
+   SetCTPBusy(i);
  }
  INT* l0inps=L0inps.front();
  L0inps.pop_front();
@@ -244,6 +254,7 @@ void CTP::CheckLM(INT i)
  L1inps.pop_front();
  if(classor){
     LMclasses.push_back(cls);
+    //SetCTPBusy(i);
     //SetCTPL0Busy(i);
     CalQueue::PutEntry(i+LML0TIME,150);
     L01inpsCTP.push_back(l0inps);
@@ -294,6 +305,7 @@ void CTP::CheckL0(INT i)
  L01inpsCTP.pop_front();
  if(classor){
     L0classes.push_back(cls0);
+    if(!trdclassor) SetCTPBusy(i);
     SetCTPL0Busy(i);
     // Send trigger both for TRD and nonTRD cluster to detectors except TRD
     SendL0Triggers(i,cls0);

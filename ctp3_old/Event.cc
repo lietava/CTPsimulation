@@ -21,34 +21,24 @@ void Event::ProduceTriggers(INT i)
    l1inps[j]=0;
   }
   double x=rnlx();
-  if(x<P_LM){
+  if(x<0.0025){
    // MB
    lminps[0]=i;
    lminps[1]=i;
    //printf("LMLM %i \n",i);
-   //L0
-   l0inps[0]=lminps[0];
-   x=rnlx();
-   if(x<P_L0)
-   {
-       l0inps[1]=i;
-   }
    // L1
    x=rnlx();
-   if(x<P_L1){
+   if(x<0.05){
      l1inps[0]=i;
      //printf("L1L1 %i \n",i);
    }
+  }else{
+   // upc
+   x=rnlx();
+   if(x<0.0001){ 
+     l0inps[0]=i;
+   }
   }
-//  else
-//  {
-//   // upc
-//   x=rnlx();
-//   if(x<0.0001){
-//     l0inps[0]=i;
-//   }
-//  }
-
   CalQueue::PutEntry(i+LMLAT,100);
   LMinps.push_back(lminps);
   L0inps.push_back(l0inps);

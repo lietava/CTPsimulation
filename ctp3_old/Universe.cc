@@ -1,13 +1,13 @@
 #include "Universe.h"
-#include "CTP.h"
-Universe::Universe():
-    dbg(0)
+Universe::Universe()
 {
- dets = new Det[CTP::NDET];
+ dets = new Det[3];
  dets[0].name="TRD";
  dets[0].SetID(0);
- dets[1].name="EMC";
+ dets[1].name="TPC";
  dets[1].SetID(1);
+ dets[2].name="SPD";
+ dets[2].SetID(2);
 }
 //-----------------------------------------------
 void Universe::Setup()
@@ -62,7 +62,6 @@ void Universe::Collide(INT Time)
 //----------------------------------------------------
 void Universe::Monitor(long int time,int delta)
 {
-    if(dbg) printf("Monitor not implemented. Time %li delta %u",time,delta);
 }
 //----------------------------------------------
 void Universe::Exist()
@@ -80,9 +79,8 @@ void Universe::Exist()
  //gdc.SendData(0);
  clock_t start=clock();
  int NCYC=5;
- int NN=1000000;
  for (int cycle=0; cycle<NCYC; cycle++){
- for (time=0; time < NN  ; time++){  //12s=500000000
+ for (time=0; time < 1000000 ; time++){  //12s=500000000
 //     cout << "------------------------------------------------------" << endl;
      if ( (time/delta)*delta == time) Monitor(time,delta);
 
@@ -97,7 +95,7 @@ void Universe::Exist()
  cq.GlobTime++;
  }
  }
- ctp.printCounts(NCYC,NN);
+ ctp.printCounts();
  clock_t stop=clock();
  cout << "CPU time= " << (stop-start)/CLOCKS_PER_SEC <<" sec"<< endl;
 } 

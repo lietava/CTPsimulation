@@ -3,15 +3,10 @@
 #define  Universe_h 1  
 #include <cstdlib>
 #include <ctime>
-#include "calqueue.h"
-#include "Event.h"
-#include "Det.h"
-#include "CTP.h"
 
 class Universe
 {
  private:
-        bool dbg;
          //DetInfo detinfo;
          Event event;
          Det *dets;

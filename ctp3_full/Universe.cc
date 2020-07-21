@@ -1,13 +1,14 @@
 #include "Universe.h"
-#include "CTP.h"
 Universe::Universe():
     dbg(0)
 {
- dets = new Det[CTP::NDET];
+ dets = new Det[3];
  dets[0].name="TRD";
  dets[0].SetID(0);
- dets[1].name="EMC";
+ dets[1].name="TPC";
  dets[1].SetID(1);
+ dets[2].name="SPD";
+ dets[2].SetID(2);
 }
 //-----------------------------------------------
 void Universe::Setup()

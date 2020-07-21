@@ -1,5 +1,4 @@
 #include "CTP.h"
-#include "Event.h"
 // Lm,L0,L1 at CTP: 21,32,230
 CTP::CTP()
 :dbg(0),CTPBusy(CalQueue::SizeofQue+10),
@@ -7,10 +6,9 @@ CTPLMBusy(CalQueue::SizeofQue+10),
 CTPL0Busy(CalQueue::SizeofQue+10)
 {
  //for(int i=0;i<NCLST;i++)CLSTBusy[i]=CalQueue::SizeofQue+10;
- // All dets busy ?
  for(int i=0;i<NDET;i++)DetBusy[i]=CalQueue::SizeofQue+10;
- DETBUSY[0]= 500;    // CPV
- DETBUSY[1]=1000;    // PHS
+ DETBUSY[0]=1000;    // TRD
+ DETBUSY[1]=2000;    // TPC
  DETBUSY[2]=1000;    //
  for(int i=0;i<NCLAS;i++){
    countBLM[i]=0;
@@ -21,25 +19,24 @@ CTPL0Busy(CalQueue::SizeofQue+10)
    countAL1[i]=0;
    ClsDownScale[i]=2.;
  }
- for(int i=0;i<NCLST;i++)countClust[i]=0;
  //ClsDownScale[0]=0.001;
- ClustTRDflag[0]=0;  // Automatic recognition of TRD classes
- ClustTRDflag[1]=1;  // for the moment it is fixed
+ ClustTRDflag[0]=1;  // Automatic recognition of TRD classes
+ ClustTRDflag[1]=0;  // for the moment it is fixed
  ClustTRDflag[2]=1;
  // Assignment of classes to clusters
  Cls2Clust[0]=0;
  Cls2Clust[1]=1;
- Cls2Clust[2]=1;
+ Cls2Clust[2]=2;
  // Assigment of detectors to clusters
- Clust2Det[0][0]=0;    // CPV
- Clust2Det[0][1]=1;     // PHS
- Clust2Det[0][2]=0;
- Clust2Det[1][0]=1;     //CPV only
- Clust2Det[1][1]=0;
- Clust2Det[1][2]=0;
+ Clust2Det[0][0]=1;    // TRD
+ Clust2Det[0][1]=1;
+ Clust2Det[0][2]=1;
+ Clust2Det[1][0]=0;     //no TRD
+ Clust2Det[1][1]=1;
+ Clust2Det[1][2]=1;
  Clust2Det[2][0]=1;
- Clust2Det[2][1]=0;
- Clust2Det[2][2]=0;
+ Clust2Det[2][1]=1;
+ Clust2Det[2][2]=1;
  // Assignment ofdescriptor to class
  Cls2Desc[0]=0;
  Cls2Desc[1]=1;
@@ -57,14 +54,18 @@ bool CTP::GetBusy(INT t,INT busytype)
 { 
  bool busy=0;
  if(busytype != (CalQueue::SizeofQue+10)){  // Detector is not busy
-   int busyint = int(busytype + BUSY - t);
-   if(t < busytype) busyint = busyint - int(CalQueue::SizeofQue);
+   int busyint = busytype + BUSY - t;
+   if(t < busytype) busyint = (busyint - CalQueue::SizeofQue);
    busy = (busyint>0);
  }
- if(1)cout << "busy bool:" << busy << " busytype:" << busytype <<" BUSY:"<<BUSY<<" t " << t << endl;
+ //if(dbg)cout << "busy bool= " << busy << " busy " << busytype << " t " << t << endl;
  return busy;
 }
-
+bool CTP::GetCTPBusy(INT t)
+{
+ BUSY=CTPDTIME;
+ return GetBusy(t,CTPBusy);
+};
 bool CTP::GetCTPL0Busy(INT t)
 {
  BUSY=L0BUSY;
@@ -79,17 +80,14 @@ bool CTP::GetDetBusy(INT t,INT idet)
 {
  //BUSY=CLSTDTIME;
  BUSY=DETBUSY[idet];
- if(1) printf("GetDetBusy: Time %u Det: %u DetBusy: %u\n",t,idet,DetBusy[idet]);
  return GetBusy(t,DetBusy[idet]);
 };
 bool CTP::GetCLSTBusy(INT t,INT iclu)
 {
- if(1)printf("GetClstBusy clst: %u time: %u \n",iclu,t);
  bool busy=0;
- for(INT i=0;i<NDET;i++){
-   if(Clust2Det[iclu][i])busy = busy || GetDetBusy(t,i);
+ for(int i=0;i<NDET;i++){
+   if(Clust2Det[iclu][i])busy += GetDetBusy(t,i);
  }
- if(1)printf("CLST %u busy: %i Time: %u \n",iclu,busy,t);
  return busy;
 }
 //---------------------------------------------------------------------------
@@ -103,15 +101,11 @@ void CTP::EvaluateLMCondition(INT t)
  // Inputs and descriptors
  INT* lminps = LMinps.front();
  LMinps.pop_front();
- Desc[0] = lminps[0];     //MB
- Desc[1] = lminps[0]; //!lminps[0] && !lminps[1]; //UPC
- Desc[2] = 0;//lminps[0];                 //MB
- if(dbg)
- {
- for(int i=0;i<2;i++)printf("LM %i ",lminps[i]);
- printf("%i \n",t);
+ Desc[0] = lminps[0]*lminps[1];     //MB
+ Desc[1] =!lminps[0] && !lminps[1]; //UPC
+ Desc[2] = Desc[0];                 //MB
+ //for(int i=0;i<2;i++)printf("LM %i ",lminps[i]);printf("%i \n",t);
  //if(Desc[0])printf("LM %i\n",t-lminps[0]);
-}
  delete [] lminps;
 }
 //---------------------------------------------------------------------------
@@ -125,15 +119,11 @@ void CTP::EvaluateL0Condition(INT t)
  // Inputs and descriptors
  INT* l0inps = L01inpsCTP.front();
  L01inpsCTP.pop_front();
- Desc[0] = l0inps[0];
- Desc[1] = l0inps[1];
- Desc[2] = l0inps[0];
- if(dbg)
- {
-     for(int i=0;i<2;i++)printf("L0 %i ",l0inps[i]);
-     printf("%i \n",t);
-    //if(Desc[1])printf("L0: %i\n",t-l0inps[0]);
- }
+ Desc[0] = 1;         
+ Desc[1] = l0inps[0]; 
+ Desc[2] = 1;
+ //for(int i=0;i<2;i++)printf("L0 %i ",l0inps[i]);printf("%i \n",t);
+ //if(Desc[1])printf("L0: %i\n",t-l0inps[0]);
  delete [] l0inps;
 }
 //---------------------------------------------------------------------------
@@ -148,13 +138,9 @@ void CTP::EvaluateL1Condition(INT t)
  L1inpsCTP.pop_front();
  Desc[0] = 1;        
  Desc[1] = 1;         //UPC
- Desc[2] = 1;
- if(dbg)
- {
-     for(int i=0;i<2;i++)printf("L1 %i ",l1inps[i]);
-     printf("%i \n",t);
-    //if(Desc[2])printf("L1: %i\n",t-l1inps[0]);
- }
+ Desc[2] = l1inps[0];
+ //for(int i=0;i<2;i++)printf("L1 %i ",l1inps[i]);printf("%i \n",t);
+ //if(Desc[2])printf("L1: %i\n",t-l1inps[0]);
  delete [] l1inps;
 }
 //---------------------------------------------------------------------------
@@ -163,14 +149,17 @@ bool CTP::EvaluateLMVetoes(INT t,INT icls)
  if(!ClsVeto[icls]) return 0;
  if((ClsDownScale[icls]< rnlx())) return 0;
 
- INT iclust=Cls2Clust[icls];
+ int iclust=Cls2Clust[icls];
  bool notveto=0;
+ bool ctpbusy = GetCTPBusy(t);
  bool clstbusy= GetCLSTBusy(t,iclust);
  bool ctpl0busy= GetCTPL0Busy(t);
  if(ClustTRDflag[iclust]){
    bool ctplmb = GetCTPLMBusy(t);
    //if(!ctpl0busy && !clstbusy){  
-   if(!ctplmb && !clstbusy && !ctpl0busy){
+   if(!ctplmb && !clstbusy && !ctpl0busy && !ctpbusy){
+   //if(!ctpbusy && !ctplmb && !clstbusy){
+   //if(!ctpl0busy && !ctplmb && !clstbusy){
      trdclassor=1;
      notveto=1;
    }
@@ -178,18 +167,20 @@ bool CTP::EvaluateLMVetoes(INT t,INT icls)
    if(1){
    //if(!ctpl0busy && !clstbusy){
    //if(!clstbusy1){
+   //if(!ctpbusy && !clstbusy){ 
    //if(!ctpbusy && !clstbusy && !ctpl0busy){ 
      notveto=1;
    }  
  }
- if(dbg)printf("%i LM clstbusy %i ctpl0busy %i \n",t,clstbusy,ctpl0busy);
+ if(dbg)printf("%i LM ctpbusy %i clstbusy %i ctpl0busy %i \n",t,ctpbusy,clstbusy,ctpl0busy);
  return notveto;
 }
 //---------------------------------------------------------------------------
 bool CTP::EvaluateL0Vetoes(INT t,INT icls)
 {
- INT iclust=Cls2Clust[icls];
+ int iclust=Cls2Clust[icls];
  bool notveto=0;
+ bool ctpbusy = GetCTPBusy(t);
  bool clstbusy= GetCLSTBusy(t,iclust);
  bool ctpl0busy= GetCTPL0Busy(t);
  if(ClustTRDflag[iclust]){
@@ -200,17 +191,16 @@ bool CTP::EvaluateL0Vetoes(INT t,INT icls)
    }
  }else{
    //if(1){
-   if(!clstbusy && !ctpl0busy){;
+   if(!ctpbusy && !clstbusy && !ctpl0busy){;
     notveto=1;
    }
  }
- if(dbg)printf("%i  clstbusy %i ctpl0busy %i \n",t,clstbusy,ctpl0busy);
+ if(dbg)printf("%i L0 ctpbusy %i clstbusy %i ctpl0busy %i \n",t,ctpbusy,clstbusy,ctpl0busy);
  return notveto;
 } 
 //---------------------------------------------------------------------------
 bool CTP::EvaluateL1Vetoes(INT t,INT icls)
 {
- if(dbg)printf("Evaluate L1: time %u clasu:%u :always 1\n",t,icls);
  return 1;
 }
 //---------------------------------------------------------------------------
@@ -224,8 +214,8 @@ void CTP::CheckLM(INT i)
  // LM decision
  bool classor=0;
  trdclassor=0;
- for(INT icls=0;icls<NCLAS;icls++){
-    INT idesc=Cls2Desc[icls];
+ for(int icls=0;icls<NCLAS;icls++){
+    int idesc=Cls2Desc[icls];
     if(Desc[idesc]){
       countBLM[icls]++;
       if(EvaluateLMVetoes(i,icls)){
@@ -237,6 +227,7 @@ void CTP::CheckLM(INT i)
  }
  if(trdclassor){
    SetCTPLMBusy(i);
+   SetCTPBusy(i);
  }
  INT* l0inps=L0inps.front();
  L0inps.pop_front();
@@ -244,6 +235,7 @@ void CTP::CheckLM(INT i)
  L1inps.pop_front();
  if(classor){
     LMclasses.push_back(cls);
+    //SetCTPBusy(i);
     //SetCTPL0Busy(i);
     CalQueue::PutEntry(i+LML0TIME,150);
     L01inpsCTP.push_back(l0inps);
@@ -278,9 +270,9 @@ void CTP::CheckL0(INT i)
  // L0 decision
  bool classor=0;
  trdclassor=0;
- for(INT icls=0;icls<NCLAS;icls++){
+ for(int icls=0;icls<NCLAS;icls++){
     if(!clsm[icls]) continue;
-    INT idesc=Cls2Desc[icls];
+    int idesc=Cls2Desc[icls];
     if(Desc[idesc]){
       countBL0[icls]++;
       if(EvaluateL0Vetoes(i,icls)){
@@ -294,6 +286,7 @@ void CTP::CheckL0(INT i)
  L01inpsCTP.pop_front();
  if(classor){
     L0classes.push_back(cls0);
+    if(!trdclassor) SetCTPBusy(i);
     SetCTPL0Busy(i);
     // Send trigger both for TRD and nonTRD cluster to detectors except TRD
     SendL0Triggers(i,cls0);
@@ -314,18 +307,14 @@ void CTP::SendL0Triggers(INT i,INT* cls0)
  bool clusttrigs[NDET];
  for(int j=0;j<NDET;j++)clusttrigs[j]=0;
  // Find dets for trigs
- int clst_fired[NCLST];
- for(int i=0;i<NCLST;i++)clst_fired[i]=0;
  for(int  icls=0;icls<NCLAS;icls++){
   if(cls0[icls]){
     INT iclust=Cls2Clust[icls];
-    clst_fired[iclust]++;
     for(int j=0;j<NDET;j++)if(Clust2Det[iclust][j])clusttrigs[j] |=1;
   } 
  }
- for(int i=0;i<NCLST;i++)if(clst_fired[i]>0)countClust[i]++;
  // Send triggers
- for(INT j=0;j<NDET;j++)if(clusttrigs[j])CalQueue::PutEntry(i+T2DET,200+j);
+ for(int j=0;j<NDET;j++)if(clusttrigs[j])CalQueue::PutEntry(i+T2DET,200+j);
  // Register L0 trigger at L0 time
  CalQueue::PutEntry(i+L0L1TIME,151);
 }
@@ -342,9 +331,9 @@ void CTP::CheckL1(INT i)
  EvaluateL1Condition(i);
  // L1 decision
  bool classor=0;
- for(INT icls=0;icls<NCLAS;icls++){
+ for(int icls=0;icls<NCLAS;icls++){
     if(!cls0[icls]) continue;
-    INT idesc=Cls2Desc[icls];
+    int idesc=Cls2Desc[icls];
     if(Desc[idesc]){
       countBL1[icls]++;
       if(EvaluateL1Vetoes(i,icls)){
@@ -381,7 +370,7 @@ void CTP::SendL1Triggers(INT i,INT* cls1)
   } 
  }
  // Send triggers
- for(INT j=0;j<NDET;j++){
+ for(int j=0;j<NDET;j++){
     if(clusttrigs[j]){
        continue; 
        //CalQueue::PutEntry(i+T2DET,400+j);
@@ -396,18 +385,12 @@ void CTP::SendL1Triggers(INT i,INT* cls1)
  // Register L2 trigger at L2 time
  //CalQueue::PutEntry(i+L0L1TIME,151);
 }
-void CTP::printCounts(int ncycle, int nn)
+void CTP::printCounts()
 {
- double bc=(ncycle-1)*nn;
  for(int i=0;i<NCLAS;i++){
   printf("\n Class %3i: \n",i);
-  printf("LM B A %8i %8i      %f %f kHz\n",countBLM[i],countALM[i],40000.*countBLM[i]/bc,40000.*countALM[i]/bc);
-  printf("L0 B A %8i %8i      %f %f kHz\n",countBL0[i],countAL0[i],40000.*countBL0[i]/bc,40000.*countAL0[i]/bc);
-  printf("L1 B A %8i %8i      %f %f kHz\n",countBL1[i],countAL1[i],40000.*countBL1[i]/bc,40000.*countAL1[i]/bc);
- }
- for(int i=0;i <NCLST;i++)
- {
-     printf("CLUSTER %2i: ",i);
-     printf(" L0: %i \n",countClust[i]);
+  printf("LM B A %8i %8i \n",countBLM[i],countALM[i]);
+  printf("L0 B A %8i %8i \n",countBL0[i],countAL0[i]);
+  printf("L1 B A %8i %8i \n",countBL1[i],countAL1[i]);
  }
 }
