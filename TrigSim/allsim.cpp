@@ -1,6 +1,7 @@
 #include "allsim.h"
 #include <iomanip>
 #include <ctime>
+#include <cmath>
 
 AllSim::AllSim()
 {
@@ -217,15 +218,19 @@ int AllSim::clustDets_1()
     //double_t lt3=l0_pint*(1.-lm_pint*LMDT)/(1+lm_pint*l0_pint*(DTdet2-LMDT));
     double_t f=1./(1+lm_pint*LMDT);
     double_t lt3=f*l0_pint/(1+f*lm_pint*l0_pint*(DTdet2));
+    double_t lt4=l0_pint/(1+l0_pint*lm_pint*(DTdet2+LML0time)+(1-l0_pint)*lm_pint*LMDT);
 
-    int margin=std::max(DTdet1,DTdet2);
+    //int margin=std::max(DTdet1,DTdet2);
 
     //
     std::cout << "One cluster Rate[MHz]:" << lm_pint*40;
     std::cout << " independent rates lt1:"<< lt1<<" lt2:"<< lt2 << " lt1*lt2:"<< lt1*lt2<< std::endl;
-    std::cout << "lt wit LMDT:" << lt3 << std::endl;
-    for(int i=0;i<SIZE-margin-1;i++)
+    std::cout << "lt with 2 levels:" << lt3 << " lt with DTLM" << lt4 << std::endl;
+    int i=0;
+    for(int i2=0;i2<Nloop;i2++)
+    for(int i1=0;i1<SIZE;i1++)
     {
+        i=(i+1)%SIZE;
         //std::cout << i << std::endl;
         if(rnlx()<lm_pint)
         {
@@ -234,8 +239,10 @@ int AllSim::clustDets_1()
             if(rnlx()<l0_pint)
             {
                 l0_inter++;
-                l0_inputs[0][i+LML0time]=1;
+                l0_inputs[0][(i+LML0time)%SIZE]=1;
             }
+            else
+                l0_inputs[0][(i+LML0time)%SIZE]=0;
         }
         int BUSYclst = det_busy[0][i]  || det_busy[1][i];
         //int BUSYclst = det_busy[0][i];
@@ -248,14 +255,17 @@ int AllSim::clustDets_1()
             {
                 // TRD trigger
                 //lm_trig++;
-                lm_triggers[0][i+LML0time]=1;
+                lm_triggers[0][(i+LML0time)%SIZE]=1;
                 // pretect TRD
                 int BUSY = i+LMDT;
-                for(int j=i+1;j<BUSY;j++)lmdeadtime[j]=1;
+                for(int j=i+1;j<BUSY;j++)lmdeadtime[j%SIZE]=1;
                 // forbid triggers for emc
                 //BUSY=i+LML0time;
                 //for(int j=i+1;j<BUSY;j++)lml0busy[j]=1;
             }
+            else
+                lm_triggers[0][(i+LML0time)%SIZE]=0;
+
         }
         // L0level
 
@@ -263,19 +273,19 @@ int AllSim::clustDets_1()
         {
             //if(!BUSYclst)
             {
-
                 l0_trig++;
                 trig12++;
                 l0_triggers[0][i]=1;
                 //l0_triggers[1][i]=1;
                 int BUSY=i+DTdet2;
-                for(int j=i+1;j<BUSY;j++)det_busy[1][j]=1;
+                for(int j=i+1;j<BUSY;j++)det_busy[1][j%SIZE]=1;
                 BUSY=i+DTdet1;
-                for(int j=i+1;j<BUSY;j++)det_busy[0][j]=1;
+                for(int j=i+1;j<BUSY;j++)det_busy[0][j%SIZE]=1;
             }
             //trig12 += Universe[5][i] && Universe[3][i-LML0time];
             if((rnlx()<lt1)&&(rnlx()<lt2))trig12check++;
         }
+        cleanMem(i-1);
         //std::cout << std::setw(5) << i <<std::dec<< " INPS:"<< lm_inputs[0][i]<<l0_inputs[0][i];
         //std::cout <<" Trigs:"<< lm_triggers[0][i]<<l0_triggers[0][i];
         //std::cout <<" busy:"<<!BUSYclst<<(!lml0busy[i])<< std::endl;
@@ -426,7 +436,7 @@ int AllSim::clustDets_2a()
 
     //
     std::cout << "Two clusters. Rate[MHz]:" << lm_pint*40;
-    std::cout << " independent rates lt1:"<< lt1<<" lt2:"<< lt2 << " lt1*lt2:"<< lt1*lt2<< std::endl;
+    std::cout << " Rates lt1:"<< lt1<<" lt2:"<< lt2 << std::endl;
     std::cout << "NLOOP:"<< Nloop << " "<< SIZE<< std::endl;
     int i=0;
     for(int i2=0;i2<Nloop;i2++)
@@ -497,9 +507,9 @@ int AllSim::clustDets_2a()
                 l0_triggers[0][i]=1;
                 //l0_triggers[1][i]=1;
                 int BUSY=i+DTdet2;
-                for(int j=i+1;j<BUSY;j++)det_busy[1][j]=1;
+                for(int j=i+1;j<BUSY;j++)det_busy[1][j%SIZE]=1;
                 BUSY=i+DTdet1;
-                for(int j=i+1;j<BUSY;j++)det_busy[0][j]=1;
+                for(int j=i+1;j<BUSY;j++)det_busy[0][j%SIZE]=1;
             }
         }
         if(lm_triggers[1][i])
@@ -535,6 +545,45 @@ int AllSim::clustDets_2a()
     //std::cout << "% TRD of LM rate formula " << rtrd << std::endl;
     //std::cout << "LT 12c:" << (double_t)trig12check/lm_inter << " " << trig12check<< std::endl;
     return 0;
+}
+
+void AllSim::PlorFormulas()
+{
+    std::cout << "LMDT effect:" << std::endl;
+    int Ndiv1=100;
+    int Ndiv2=100;
+    double_t f;
+    double_t lt3;
+    double_t lt4;
+    l0_pint=0.;
+    double_t del=1./Ndiv1;
+    lm_pint=0;
+    std::cout << "DTLM:"<< LMDT << " LML0time:"<< LML0time<<std::endl;
+    //double_t maxav=0;
+    double_t maxdiff=0;
+    for(int j=0;j<Ndiv1;j++)
+    {
+        l0_pint=0;
+        for(int i=0;i<Ndiv2;i++)
+        {
+            f=1./(1+lm_pint*LMDT);
+            lt3=f*l0_pint/(1+f*lm_pint*l0_pint*(DTdet2));
+            lt4=l0_pint/(1+l0_pint*lm_pint*(DTdet2+LML0time)+(1-l0_pint)*lm_pint*LMDT);
+            //std::cout<< "lm_pint:"<< lm_pint<<" l0_pint:"<< l0_pint << " f:"<<f<<" lt3:"<<lt3<<" lt4:"<<lt4<<std::endl;
+            //printf("lm_pint: %5.3f l0_pint:%5.3f f:%8.6f lt3:%10.8f lt4:%10.8f diff:%10.8f\n",lm_pint,l0_pint,f,lt3,lt4,(lt3-lt4)/lt3);
+            //lm_pint+=del;
+            double_t diff=std::abs(lt3-lt4);
+            //double_t av=diff/lt4;
+            //if(av>0.0075)printf("lm_pint: %5.3f l0_pint:%5.3f f:%8.6f lt3:%10.8f lt4:%10.8f diff:%10.8f\n",lm_pint,l0_pint,f,lt3,lt4,(lt3-lt4)/lt3);
+            l0_pint+=del;
+            if(maxdiff<diff)
+            {
+                maxdiff=diff;
+                printf("lm_pint: %5.3f l0_pint:%5.3f f:%8.6f lt3:%10.8f lt4:%10.8f diff:%10.8f\n",lm_pint,l0_pint,f,lt3,lt4,(lt3-lt4)/lt3);
+            }
+        }
+        lm_pint+=del;
+    }
 }
 
 double AllSim::rnlx(){return ranlux(gen);}
