@@ -42,14 +42,14 @@ private:
     bool* lmdeadtime;
     //
     // 50kHz  10 kHz
-    double_t lm_pint=1./800.;
-    double_t l0_pint=1./5.;
+    //double_t lm_pint=1./800.;
+    //double_t l0_pint=1./5.;
     // 1 MHz 10 kHz
     //double_t lm_pint=1./40.;
     //double_t l0_pint = 1.0/100.;///100.; // relative to lm
     // 300 kHz
-    //double_t lm_pint=1./133.;
-    //double_t l0_pint=1./30.;
+    double_t lm_pint=1./133.;
+    double_t l0_pint=1./30.;
     const int LML0time=16;
     const int LMDT=26;//26;
     //
