@@ -17,9 +17,11 @@ public:
     int clustDets_1();
     int clustDets_2();
     int clustDets_2a();
+    void PlorFormulas();
     double rnlx();
     void setNLOOP(int loop){Nloop=loop;};
 private:
+    int Nloop=100;
     const int SIZE=1024*1024*10;
     const int NDETS=2;
     const int NLMINPS=1;
@@ -27,10 +29,21 @@ private:
     const int NLMTRGS=2;
     const int NL0TRGS=2;
     const int NDETBUS=NDETS;
+    // Dead Times
     const int DTdet1=8*40;    //TRD
     const int DTdet2=33*40;//33*40; // EMC
-    int Nloop=100;
+    const int LML0time=16;
+    const int LMDT=26;//26;
     //
+    // Rates 50kHz  10 kHz
+    double_t lm_pint=1./800.;
+    double_t l0_pint=1./5.;
+    // 1 MHz 10 kHz
+    //double_t lm_pint=1./40.;
+    //double_t l0_pint = 1.0/100.;///100.; // relative to lm
+    // 300 kHz
+    //double_t lm_pint=1./133.;
+    //double_t l0_pint=1./30.;
     //bool** Universe;
     //
     bool** lm_inputs;
@@ -40,19 +53,6 @@ private:
     bool** det_busy;
     bool* lml0busy;
     bool* lmdeadtime;
-    //
-    // 50kHz  10 kHz
-    //double_t lm_pint=1./800.;
-    //double_t l0_pint=1./5.;
-    // 1 MHz 10 kHz
-    //double_t lm_pint=1./40.;
-    //double_t l0_pint = 1.0/100.;///100.; // relative to lm
-    // 300 kHz
-    double_t lm_pint=1./133.;
-    double_t l0_pint=1./30.;
-    const int LML0time=16;
-    const int LMDT=26;//26;
-    //
     // Counters
     int lm_inter=0;
     int l0_inter=0;
